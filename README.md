@@ -14,7 +14,7 @@ you'll be creating yourself during the tutorial and the `jenkins/scripts` subdir
 contains a shell script with commands that are executed when Jenkins processes
 the "Deliver" stage of your Pipeline.
 
-# Java CI/CD Project
+# Java CI/CD Project - GitHub Actions 
 
 This project demonstrates a CI/CD pipeline for a Java application using GitHub Actions, Maven, and Docker. The pipeline automates the build, test, version increment, deployment to GitHub Packages, and Docker image build and push processes.
 

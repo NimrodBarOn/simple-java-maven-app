@@ -45,7 +45,7 @@ jobs:
       run: |
         VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
         IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-        if [[ $GITHUB_REF == 'refs/heads/main' ]]; then
+        if [[ $GITHUB_REF == 'refs/heads/master' ]]; then
           NEW_MINOR=$((MINOR+1))
           NEW_VERSION="$MAJOR.$NEW_MINOR.0"
         else
@@ -90,7 +90,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Deploy Docker Image
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/master'
       run: |
         mkdir -p ~/.ssh
         echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa

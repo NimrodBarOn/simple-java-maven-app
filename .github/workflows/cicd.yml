@@ -99,8 +99,8 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i "~/.ssh/id_rsa" ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker pull ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-    
-          # Check if the container is running
+          
+          # Stop and remove the container if it exists
           if [ $(docker ps -q -f name=my-app) ]; then
             echo "Stopping and removing existing container"
             docker stop my-app || true
@@ -108,7 +108,15 @@ jobs:
           else
             echo "No existing container to stop and remove"
           fi
-    
+          
+          # Remove the image if it exists
+          if [ $(docker images -q ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}) ]; then
+            echo "Removing old image"
+            docker rmi ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} || true
+          else
+            echo "No old image to remove"
+          fi
+          
           # Run the new container
           docker run -d --name my-app -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
         EOF
@@ -118,3 +126,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
+    

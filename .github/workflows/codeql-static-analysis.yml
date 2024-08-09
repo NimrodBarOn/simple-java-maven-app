@@ -20,11 +20,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          java-version: '17' # Adjust to your Java version
-          distribution: 'adoptopenjdk' # Specify the distribution
+		  - name: Set up JDK 17
+		    id: setup-java
+		    uses: actions/setup-java@v4
+		    with:
+		      java-version: '17'
+		      distribution: 'temurin'
+		      cache: maven
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3

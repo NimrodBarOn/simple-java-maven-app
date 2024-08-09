@@ -6,8 +6,8 @@ ENV MAVEN_VERSION=3.9.2
 
 # Install Maven 3.9.2 and clean up
 RUN apt-get update && \
-    apt-get install -y wget && \
-    wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz && \
+    apt-get install -y --no-install-recommends wget && \
+    wget --progress=dot:giga https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz && \
     tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz -C /opt && \
     ln -s /opt/apache-maven-$MAVEN_VERSION/bin/mvn /usr/bin/mvn && \
     rm -f apache-maven-$MAVEN_VERSION-bin.tar.gz && \
@@ -35,3 +35,4 @@ COPY --from=build /app/target/*.jar app.jar
 
 # Run the application
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+

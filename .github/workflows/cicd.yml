@@ -36,10 +36,11 @@ jobs:
       if: github.ref == 'refs/heads/development'
       run: mvn test
 
+    - name: Install TruffleHog
+      run: pip install trufflehog
+
     - name: Secret Scanning with TruffleHog
-      uses: trufflesecurity/trufflehog-action@v3.0.7
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+      run: trufflehog filesystem --directory . --json
 
     - name: Dependency Scanning with Snyk
       uses: snyk/actions/cli@master

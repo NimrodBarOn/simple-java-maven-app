@@ -14,7 +14,8 @@ jobs:
       
     - name: Install Gitleaks
       run: |
-        curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.17.0/gitleaks-linux-amd64.tar.gz | tar -xz
+        curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.17.0/gitleaks-linux-amd64.tar.gz
+        tar -xzf gitleaks.tar.gz
         sudo mv gitleaks /usr/local/bin/
     
     - name: Set Up Gitleaks Pre-Commit Hook

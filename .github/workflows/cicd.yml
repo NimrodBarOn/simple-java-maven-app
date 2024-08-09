@@ -62,8 +62,6 @@ jobs:
           exit 0
         fi
         echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-        echo "NEW_VERSION: $NEW_VERSION" # Debugging line to check the value of NEW_VERSION
-        # Update the version in pom.xml
         mvn versions:set -DnewVersion=$NEW_VERSION
 
     - name: Upload artifact

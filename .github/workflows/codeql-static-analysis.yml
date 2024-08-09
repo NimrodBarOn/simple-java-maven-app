@@ -26,7 +26,7 @@ jobs:
           java-version: '17' # Adjust to your Java version
 
       - name: Setup CodeQL
-        uses: github/codeql-action/setup-codeql@v2
+        uses: github/codeql-action/setup-codeql@v3
         with:
           languages: java
 
@@ -34,5 +34,7 @@ jobs:
         run: ./mvnw clean install # Adjust according to your build system
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: 'default'
 

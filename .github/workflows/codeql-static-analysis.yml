@@ -40,11 +40,6 @@ jobs:
       - name: Build project
         run: mvn clean install
 
-      - name: Set CodeQL languages
-        uses: github/set-codeql-languages@v1
-        with:
-          languages: 'java'
-
       - name: Analyze code with CodeQL
         uses: github/codeql-action/analyze@v3
         with:

@@ -23,7 +23,7 @@ This project demonstrates a CI/CD pipeline for a Java application using GitHub A
 - **TruffleHog**: Installed locally or via GitHub Actions for secret scanning.
 - **Hadolint**: Installed locally or via GitHub Actions for Dockerfile linting.
 - **CodeQL**: Installed locally or via GitHub Actions for static code analysis.
-- **Notary**: Installed locally for artifact signing (if applicable).
+- **Cosign**: Installed locally or via GitHub Actions for image signing.
 - **SSH Access**: SSH access to an EC2 instance for deployment (ensure your SSH key is available and configured).
 - **AWS CLI**: To manage AWS resources (EC2 instances, security groups, etc.).
 
@@ -49,10 +49,11 @@ This project demonstrates a CI/CD pipeline for a Java application using GitHub A
       - `DOCKER_USERNAME`: Your Docker Hub username.
       - `DOCKER_PASSWORD`: Your Docker Hub password.
       - `EC2_HOST`: Your EC2 instance public IP or DNS.
-      - `SSH_USER`: The user for SSH access (e.g., `ubuntu`).
-      - `SSH_KEY`: Your private SSH key content (base64 encoded).
+      - `EC2_SSH_KEY`: Your private SSH key content.
       - `SNYK_TOKEN`: Your Snyk API token for dependency scanning.
-      - `NOTARY_AUTH`: Your Notary authentication information for artifact signing (if applicable).
+      - `COSIGN_PRIVATE_KEY`: Your private key for signing Docker images.
+      - `COSIGN_PASSWORD`: Your password for the Cosign private key.
+      - `COSIGN_PUBLIC_KEY`: Your public key for verifying Docker image signatures.
 
 ### Dockerfile
 
@@ -84,7 +85,9 @@ This workflow automates the entire CI/CD process, from building and testing the 
 3. Run Snyk for dependency scanning.
 4. Increment version numbers based on the branch.
 5. Build and push the Docker image to Docker Hub.
-6. Deploy the Docker image to an EC2 instance via SSH.
+6. Sign the Docker image using Cosign.
+7. Verify the Docker image signature.
+8. Deploy the Docker image to an EC2 instance via SSH.
 
 ### 2. Secret Scanning Workflow (`.github/workflows/trufflehog-secret-scan.yml`)
 
@@ -135,6 +138,7 @@ The CI/CD workflow consists of the following steps:
 
 5. **Build and Test**:
     - Executes the `mvn clean install` command to build the project and run tests.
+    - On the `development` branch, runs `mvn test`.
 
 6. **Snyk Dependency Scanning**:
     - Runs Snyk to scan dependencies for known vulnerabilities.
@@ -148,7 +152,13 @@ The CI/CD workflow consists of the following steps:
 9. **Push Docker Image**:
     - Pushes the Docker image to Docker Hub using the `docker push` command.
 
-10. **Deploy to EC2**:
+10. **Sign Docker Image**:
+    - Signs the Docker image using Cosign.
+
+11. **Verify Docker Image Signature**:
+    - Verifies the Docker image signature using Cosign.
+
+12. **Deploy to EC2**:
     - SSH into the EC2 instance and pull the Docker image from Docker Hub.
     - Deploy the Docker container on the EC2 instance.
 

@@ -103,6 +103,7 @@ jobs:
       env:
         COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        DIGEST: ${{ env.digest }}
 
   verify-signed-container:
     runs-on: ubuntu-latest
@@ -118,6 +119,7 @@ jobs:
 
     - name: Verify Docker Image Signature
       run: |
+        echo "Verifying image with tag: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
         cosign verify --key cosign-public-key.pem ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
   deploy:
@@ -157,3 +159,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
+

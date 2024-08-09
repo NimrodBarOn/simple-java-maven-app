@@ -11,11 +11,21 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-
-    - name: Secret Scan
+      
+    - name: Install Gitleaks
       run: |
-        curl -s https://raw.githubusercontent.com/gitleaks/gitleaks/master/scripts/install.sh | bash
-        gitleaks detect --source . --exit-code 1
+        curl -sSL https://github.com/gitleaks/gitleaks/releases/download/v8.17.0/gitleaks-linux-amd64.tar.gz | tar -xz
+        sudo mv gitleaks /usr/local/bin/
+    
+    - name: Set Up Gitleaks Pre-Commit Hook
+      run: |
+        echo '#!/bin/sh' > .git/hooks/pre-commit
+        echo 'gitleaks protect --staged --verbose' >> .git/hooks/pre-commit
+        chmod +x .git/hooks/pre-commit
+    
+    - name: Run Secret Scanning
+      run: |
+        gitleaks protect --staged --verbose
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4

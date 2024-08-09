@@ -37,31 +37,34 @@ jobs:
       if: github.ref == 'refs/heads/development'
       run: mvn test
 
-    - name: Run Snyk Maven Dependency Scan
-      id: snyk_scan
-      uses: snyk/actions/maven-3-jdk-17@master
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
-      with:
-        args: --severity-threshold=high
-        command: test
-      continue-on-error: true # Continue even if the command fails
+		- name: Run Snyk Maven Dependency Scan
+			id: snyk_scan
+			uses: snyk/actions/maven-3-jdk-17@master
+			env:
+				SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+				JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+			with:
+				args: --severity-threshold=high --json
+				command: test
+			continue-on-error: true # Continue even if the command fails
 
-    - name: Check for Critical Vulnerabilities
-      run: |
-        if [ -f snyk-results.json ]; then
-          CRITICAL_COUNT=$(jq '.vulnerabilities | map(select(.severity == "critical")) | length' snyk-results.json)
-          if [ "$CRITICAL_COUNT" -gt 0 ]; then
-            echo "Critical vulnerabilities found: $CRITICAL_COUNT"
-            exit 1
-          fi
-        else
-          echo "No Snyk results file found."
-          exit 1
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+		- name: List directory contents
+			run: ls -la
+
+		- name: Check for Critical Vulnerabilities
+			run: |
+				if [ -f snyk-results.json ]; then
+				  CRITICAL_COUNT=$(jq '.vulnerabilities | map(select(.severity == "critical")) | length' snyk-results.json)
+				  if [ "$CRITICAL_COUNT" -gt 0 ]; then
+				    echo "Critical vulnerabilities found: $CRITICAL_COUNT"
+				    exit 1
+				  fi
+				else
+				  echo "No Snyk results file found."
+				  exit 1
+				fi
+			env:
+				GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Update Maven version
       if: success()

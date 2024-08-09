@@ -98,18 +98,13 @@ jobs:
     - name: Sign images with a key
       if: github.ref == 'refs/heads/master'
       run: |
-        images=""
-        for tag in ${TAGS}; do
-          images+="${tag}@${DIGEST} "
-        done
+        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}"
         cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
       env:
-        TAGS: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
         COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        DIGEST: ${{ env.digest }}
 
-   verify-signed-container:
+  verify-signed-container:
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/master'
@@ -162,4 +157,3 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
-

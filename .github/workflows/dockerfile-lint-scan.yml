@@ -1,0 +1,28 @@
+name: Dockerfile Lint
+
+on:
+  push:
+    branches:
+      - master
+      - development
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Lint Dockerfile
+      run: |
+        docker run --rm -i hadolint/hadolint < Dockerfile
+        # Fail the build if hadolint finds issues
+        if [ $? -ne 0 ]; then
+          echo "Hadolint found issues in Dockerfile!"
+          exit 1
+        fi
+

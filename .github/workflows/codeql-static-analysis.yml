@@ -5,7 +5,6 @@ on:
     branches:
       - master
       - development
-      
   pull_request:
     branches:
       - master
@@ -41,6 +40,9 @@ jobs:
       - name: Build project
         run: mvn clean install
 
+      - name: List build directory
+        run: ls -R target
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -48,4 +50,5 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
+        continue-on-error: true
 

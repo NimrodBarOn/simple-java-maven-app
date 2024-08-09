@@ -17,8 +17,14 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Set up Hadolint
+      uses: hadolint/hadolint-action@v2
+      with:
+        dockerfile: Dockerfile
+        hadolint_version: v2.15.0  # Specify the version of Hadolint to use
+
     - name: Run Hadolint
       run: |
-        docker run --rm -i hadolint/hadolint < Dockerfile
+        hadolint Dockerfile
       continue-on-error: false  # Ensure the job fails if Hadolint fails
 

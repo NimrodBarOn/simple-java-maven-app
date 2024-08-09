@@ -1,14 +1,13 @@
+# .github/workflows/codeql-analysis.yml
 name: CodeQL Analysis
 
 on:
   push:
     branches:
-      - master
-      - development
+      - main
   pull_request:
     branches:
-      - master
-      - development
+      - main
 
 jobs:
   analyze:
@@ -19,11 +18,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17' # Adjust to your Java version
+
       - name: Setup CodeQL
-        uses: github/codeql-action/setup-codeql@v3
+        uses: github/codeql-action/setup-codeql@v2
         with:
           languages: java
 
-      - name: Analyze code with CodeQL
-        uses: github/codeql-action/analyze@v3
+      - name: Build project
+        run: ./mvnw clean install # Adjust according to your build system
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
 

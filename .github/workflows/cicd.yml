@@ -45,21 +45,22 @@ jobs:
       uses: snyk/actions/cli@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      run: snyk test --severity-threshold=critical
+      with:
+        command: test --severity-threshold=critical
 
     - name: Dockerfile Scanning with Docker Linter
       run: |
         docker run --rm -i hadolint/hadolint < Dockerfile
 
-    - name: Static Code Analysis with CodeQL
+    - name: Initialize CodeQL
       uses: github/codeql-action/init@v2
       with:
         languages: java
-    - run: |
+
+    - name: Perform CodeQL Analysis
+      run: |
         codeql database create db
         codeql database analyze db --format=sarif -o codeql-report.sarif
-      if: github.event_name == 'push' && github.ref == 'refs/heads/master'
-      uses: github/codeql-action/analyze@v2
 
     - name: Sign Docker Image with Notary
       if: github.ref == 'refs/heads/master'
@@ -85,7 +86,6 @@ jobs:
 
     - name: Build and Push Docker Image
       if: github.ref == 'refs/heads/master'
-      id: docker_build
       uses: docker/build-push-action@v4
       with:
         context: .

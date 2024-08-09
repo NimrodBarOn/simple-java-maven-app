@@ -39,11 +39,6 @@ jobs:
     - name: Run Maven build
       run: mvn clean install
 
-    - name: Run Trusty Dependency Risk Scan
-      uses: trusty-secure/trusty-dependency-risk-action@v1
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Test with Maven
       if: github.ref == 'refs/heads/development'
       run: mvn test

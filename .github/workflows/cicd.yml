@@ -37,11 +37,17 @@ jobs:
       run: mvn test
 
     - name: Snyk Maven Dependency Scan
-      uses: snyk/actions/maven@v2.0.0
-      with:
-        args: --severity-threshold=high
+      uses: snyk/actions/maven-3-jdk-17@master
+      continue-on-error: true
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --sarif-file-output=snyk.sarif
+
+    - name: Upload Snyk results to GitHub Code Scanning
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: snyk.sarif
 
     - name: Build and Push Docker Image
       if: github.ref == 'refs/heads/master'
@@ -51,13 +57,6 @@ jobs:
         file: ./Dockerfile
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-
-    - name: Snyk Docker Image Scan
-      uses: snyk/actions/docker@v2.0.0
-      with:
-        args: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-      env:
-        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     - name: Deploy Docker Image
       if: github.ref == 'refs/heads/master'

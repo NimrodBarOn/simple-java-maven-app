@@ -113,13 +113,13 @@ jobs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.6.0
 
-    - name: Create Public Key File
-      run: echo "${{ secrets.COSIGN_PUBLIC_KEY }}" > cosign-public-key.pem
-
-    - name: Verify Docker Image Signature
+    - name: Verify images with public key
+      if: github.ref == 'refs/heads/master'
       run: |
-        echo "Verifying image with tag: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
-        cosign verify --key cosign-public-key.pem ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        cosign verify --yes --key env://COSIGN_PUBLIC_KEY ${images}
+      env:
+        COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 
   deploy:
     runs-on: ubuntu-latest

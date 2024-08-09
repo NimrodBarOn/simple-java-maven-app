@@ -43,7 +43,7 @@ jobs:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
       with:
-        args: --severity-threshold=high --fail-on=critical
+        args: --severity-threshold=high --fail-on=all
 
     - name: Update Maven version
       if: success()

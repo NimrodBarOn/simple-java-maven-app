@@ -45,6 +45,10 @@ jobs:
         with:
           languages: java
 
+      - name: Build CodeQL Database
+        run: |
+          codeql database create --language=java --source-root=src --db-cluster /home/runner/work/_temp/codeql_databases/java
+
       - name: Analyze code with CodeQL
         uses: github/codeql-action/analyze@v3
         with:

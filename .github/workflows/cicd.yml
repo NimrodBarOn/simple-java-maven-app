@@ -28,7 +28,7 @@ jobs:
         sudo mv apache-maven-$MAVEN_VERSION /opt/maven
         sudo ln -sf /opt/maven/bin/mvn /usr/bin/mvn
       env:
-        JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+				JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
 
 		- name: Build with Maven
 			run: mvn -B package --file pom.xml -Dmaven.plugin.validation=VERBOSE

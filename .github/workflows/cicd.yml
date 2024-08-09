@@ -12,21 +12,44 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       
-    - name: Install Gitleaks
+name: Secret Scan with TruffleHog
+
+on:
+  push:
+    branches:
+      - master
+      - development
+  pull_request:
+    branches:
+      - master
+      - development
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install TruffleHog
       run: |
-        curl -sSL -o gitleaks.tar.gz https://github.com/gitleaks/gitleaks/releases/download/v8.17.0/gitleaks-linux-amd64.tar.gz
-        tar -xzf gitleaks.tar.gz
-        sudo mv gitleaks /usr/local/bin/
-    
-    - name: Set Up Gitleaks Pre-Commit Hook
+        sudo apt-get update
+        sudo apt-get install -y python3-pip
+        pip3 install truffleHog
+
+    - name: Run TruffleHog
       run: |
-        echo '#!/bin/sh' > .git/hooks/pre-commit
-        echo 'gitleaks protect --staged --verbose' >> .git/hooks/pre-commit
-        chmod +x .git/hooks/pre-commit
-    
-    - name: Run Secret Scanning
-      run: |
-        gitleaks protect --staged --verbose
+        trufflehog --json --no-git --rules .trufflehog-rules.yml https://github.com/${{ github.repository }} > trufflehog-report.json
+        cat trufflehog-report.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload TruffleHog report
+      uses: actions/upload-artifact@v4
+      with:
+        name: trufflehog-report
+        path: trufflehog-report.json
 
     - name: Set up JDK 17
       uses: actions/setup-java@v4

@@ -28,13 +28,23 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
+      - name: Install Maven
+        run: |
+          MAVEN_VERSION=3.9.2
+          wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+          tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+          sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+          sudo ln -sf /opt/maven/bin/mvn /usr/bin/mvn
+        env:
+          JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+
+      - name: Build project
+        run: mvn clean install
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: java
-
-      - name: Build project
-        run: ./mvnw clean install # Adjust according to your build system
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3

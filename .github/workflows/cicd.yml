@@ -88,13 +88,13 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
-		- name: Sign Docker Image with Cosign
-			if: github.ref == 'refs/heads/master'
-			run: |
-				echo "${{ secrets.COSIGN_KEY }}" > cosign.key
-				cosign sign --key cosign.key ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-			env:
-				COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+    - name: Sign Docker Image with Cosign
+      if: github.ref == 'refs/heads/master'
+      run: |
+        echo "${{ secrets.COSIGN_KEY }}" > cosign.key
+        cosign sign --key cosign.key ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+      env:
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
     - name: Commit and push new version
       if: success()

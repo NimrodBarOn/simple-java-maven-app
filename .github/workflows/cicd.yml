@@ -37,7 +37,7 @@ jobs:
       run: mvn test
 
     - name: Snyk Maven Dependency Scan
-      uses: snyk/actions/maven@v2
+      uses: snyk/actions/maven@v2.0.0
       with:
         args: --severity-threshold=high
       env:
@@ -53,7 +53,7 @@ jobs:
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
     - name: Snyk Docker Image Scan
-      uses: snyk/actions/docker@v1
+      uses: snyk/actions/docker@v2.0.0
       with:
         args: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
       env:

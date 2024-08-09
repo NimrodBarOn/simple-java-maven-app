@@ -13,9 +13,12 @@ on:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Specifies the runner to use. MacOS runner is used for Swift; otherwise, Ubuntu is used.
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    # Sets a timeout for the job based on the language. Swift jobs have a longer timeout.
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
+      # Provides necessary permissions for CodeQL analysis.
       security-events: write
       packages: read
       actions: read
@@ -27,17 +30,23 @@ jobs:
         include:
         - language: java-kotlin
           build-mode: none
+        # Define the languages to be analyzed and the build mode.
+        # `java-kotlin` is used to analyze Java/Kotlin code.
+        # Use `build-mode` to adjust how CodeQL builds your code.
 
     steps:
+    # Step to check out the repository code.
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    # Initializes CodeQL for scanning the repository.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
         languages: ${{ matrix.language }}
         build-mode: ${{ matrix.build-mode }}
 
+    # Performs the CodeQL analysis.
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
       with:

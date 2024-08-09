@@ -99,7 +99,7 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         echo "${{ secrets.COSIGN_KEY }}" > cosign.key
-        cosign sign --key cosign.key ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app@sha256:${{ env.digest }}
+        cosign sign --key cosign.key ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app@${{ env.digest }}
       env:
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 

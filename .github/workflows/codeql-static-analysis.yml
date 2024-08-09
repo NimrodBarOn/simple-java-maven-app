@@ -1,13 +1,15 @@
-# .github/workflows/codeql-analysis.yml
 name: CodeQL Analysis
 
 on:
   push:
     branches:
-      - main
+      - master
+      - development
+      
   pull_request:
     branches:
-      - main
+      - master
+      - development
 
 jobs:
   analyze:

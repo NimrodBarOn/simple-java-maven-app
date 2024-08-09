@@ -115,6 +115,9 @@ jobs:
     if: github.ref == 'refs/heads/master'
 
     steps:
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.6.0
+
     - name: Verify Docker Image Signature
       run: |
         cosign verify --key ${{ secrets.COSIGN_PUBLIC_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}

@@ -40,18 +40,14 @@ jobs:
       - name: Build project
         run: mvn clean install
 
-      - name: List build directory
-        run: ls -R target
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+      - name: Set CodeQL languages
+        uses: github/set-codeql-languages@v1
         with:
-          languages: java
+          languages: 'java'
 
-      - name: Perform CodeQL Analysis
+      - name: Analyze code with CodeQL
         uses: github/codeql-action/analyze@v3
-        continue-on-error: true
         with:
-          # Enable verbose logging for troubleshooting
-          verbose: true
+          threads: 4
+          ram: 14567
 

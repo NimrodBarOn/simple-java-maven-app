@@ -32,8 +32,8 @@ jobs:
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
-        with:
-          args: --severity-threshold=high
+      with:
+        args: --severity-threshold=high
 
     - name: Update Maven version
       if: success()

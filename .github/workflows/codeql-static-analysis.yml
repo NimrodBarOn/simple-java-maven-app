@@ -18,15 +18,15 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
           java-version: '17' # Adjust to your Java version
 
-      - name: Setup CodeQL
-        uses: github/codeql-action/setup-codeql@v3
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
         with:
           languages: java
 
@@ -35,6 +35,4 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
-        with:
-          category: 'default'
 

@@ -1,4 +1,4 @@
-name: Java CI with Maven
+name: Java CI with Maven and Snyk
 
 on:
   push:
@@ -19,7 +19,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Install Maven 3.9.2
+    - name: Install Maven
       run: |
         MAVEN_VERSION=3.9.2
         wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
@@ -36,42 +36,15 @@ jobs:
       if: github.ref == 'refs/heads/development'
       run: mvn test
 
-    - name: Update Maven version
-      if: success()
-      id: update_version
-      run: |
-        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
-        if [[ $GITHUB_REF == 'refs/heads/master' ]]; then
-          NEW_MINOR=$((MINOR+1))
-          NEW_VERSION="$MAJOR.$NEW_MINOR.0"
-        elif [[ $GITHUB_REF == 'refs/heads/development' ]]; then
-          NEW_PATCH=$((PATCH+1))
-          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
-        else
-          echo "Not a monitored branch. Skipping version increment."
-          exit 0
-        fi
-        echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-        echo "NEW_VERSION: $NEW_VERSION" # Debugging line to check the value of NEW_VERSION
-        # Update the version in pom.xml
-        mvn versions:set -DnewVersion=$NEW_VERSION
-    
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
+    - name: Snyk Maven Dependency Scan
+      uses: snyk/actions/maven@v2
       with:
-        name: my-app-${{ env.new_version }}
-        path: target/*.jar
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
+        args: --severity-threshold=high
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
     - name: Build and Push Docker Image
       if: github.ref == 'refs/heads/master'
-      id: docker_build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -79,24 +52,12 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
-    - name: Snyk Maven Dependency Scan
-      uses: snyk/actions/maven
+    - name: Snyk Docker Image Scan
+      uses: snyk/actions/docker@v1
       with:
-        command: test
-        args: --severity-threshold=high
+        args: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-
-    - name: Commit and push new version
-      if: success()
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add pom.xml
-        git commit -m "Update version to ${{ env.new_version }}"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Deploy Docker Image
       if: github.ref == 'refs/heads/master'
@@ -107,21 +68,6 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i "~/.ssh/id_rsa" ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
           docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
           docker pull ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-    
-          # Clean up unused containers and images
-          docker container prune -f
-          docker image prune -f
-    
-          # Check if the container is running and stop/remove if necessary
-          if [ $(docker ps -aq -f name=my-app) ]; then
-            echo "Stopping and removing existing container"
-            docker stop my-app || true
-            docker rm my-app || true
-          else
-            echo "No existing container to stop and remove"
-          fi
-          
-          # Run the new container
           docker run -d --name my-app -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
         EOF
       env:

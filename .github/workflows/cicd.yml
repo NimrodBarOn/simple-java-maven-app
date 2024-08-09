@@ -19,7 +19,7 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: maven
-        
+
     - name: Install Maven
       run: |
         MAVEN_VERSION=3.9.2
@@ -88,6 +88,14 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.0.2
+
+    - name: Sign Docker Image
+      if: github.ref == 'refs/heads/master'
+      run: |
+        cosign sign --key ${{ secrets.COSIGN_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+
     - name: Commit and push new version
       if: success()
       run: |
@@ -131,3 +139,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
+

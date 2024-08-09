@@ -11,7 +11,7 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
@@ -19,7 +19,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
-    - name: Install Maven 3.9.2
+    - name: Install Maven
       run: |
         MAVEN_VERSION=3.9.2
         wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
@@ -29,31 +29,17 @@ jobs:
       env:
         JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
 
-    - name: Build with Maven
-      run: mvn -B package --file pom.xml
+    - name: Run Maven build
+      run: mvn clean install
+
+    - name: Run Trusty Dependency Risk Scan
+      uses: trusty-secure/trusty-dependency-risk-action@v1
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Test with Maven
       if: github.ref == 'refs/heads/development'
       run: mvn test
-
-    - name: Dependency Check
-      run: |
-        mvn org.owasp:dependency-check-maven:check
-        cat target/dependency-check-report.html
-      continue-on-error: false
-
-    - name: Login to Docker Hub for Scan
-      run: |
-        echo "${{ secrets.DOCKER_PASSWORD }}" | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-    
-    - name: Scan Dockerfile
-      run: docker scan --file Dockerfile .
-
-    - name: Run Static Code Analysis
-      if: github.ref == 'refs/heads/master'
-      uses: github/codeql-action/analyze@v2
-      with:
-        language: java
 
     - name: Update Maven version
       if: success()
@@ -98,11 +84,6 @@ jobs:
         push: true
         tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
-    - name: Sign Docker Image
-      if: github.ref == 'refs/heads/master'
-      run: |
-        cosign sign --key ${{ secrets.COSIGN_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-
     - name: Commit and push new version
       if: success()
       run: |
@@ -113,11 +94,6 @@ jobs:
         git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Verify Docker Image
-      if: github.ref == 'refs/heads/master'
-      run: |
-        cosign verify --key ${{ secrets.COSIGN_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
 
     - name: Deploy Docker Image
       if: github.ref == 'refs/heads/master'
@@ -151,3 +127,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
+

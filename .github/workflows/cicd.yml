@@ -28,13 +28,12 @@ jobs:
       run: mvn test
 
     - name: Run Snyk Maven Dependency Scan
-      uses: snyk/actions/maven@v1.0.0
-      continue-on-error: true
+      uses: snyk/actions/maven-3-jdk-17@master
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
-      with:
-        args: --all-projects
+        with:
+          args: --severity-threshold=high
 
     - name: Update Maven version
       if: success()

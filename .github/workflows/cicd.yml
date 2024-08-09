@@ -28,10 +28,10 @@ jobs:
         sudo mv apache-maven-$MAVEN_VERSION /opt/maven
         sudo ln -sf /opt/maven/bin/mvn /usr/bin/mvn
       env:
-				JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+        JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
 
-		- name: Build with Maven
-			run: mvn -B package --file pom.xml -Dmaven.plugin.validation=VERBOSE
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml -Dmaven.plugin.validation=VERBOSE
 
     - name: Test with Maven
       if: github.ref == 'refs/heads/development'
@@ -149,3 +149,4 @@ jobs:
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         NEW_VERSION: ${{ env.new_version }}
+

@@ -119,7 +119,7 @@ jobs:
       if: github.ref == 'refs/heads/master'
       run: |
         images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} ${secrets.DOCKER_USERNAME }}/simple-java-maven-app:latest"
-        cosign verify --yes --key env://COSIGN_PUBLIC_KEY ${images}
+        cosign verify --key env://COSIGN_PUBLIC_KEY ${images}
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
 

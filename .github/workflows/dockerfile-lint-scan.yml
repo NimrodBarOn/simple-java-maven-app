@@ -18,10 +18,9 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Hadolint
-      uses: hadolint/hadolint-action@v2
-      with:
-        dockerfile: Dockerfile
-        hadolint_version: v2.15.0  # Specify the version of Hadolint to use
+			uses: hadolint/hadolint-action@v3.1.0
+		  with:
+		    dockerfile: Dockerfile
 
     - name: Run Hadolint
       run: |

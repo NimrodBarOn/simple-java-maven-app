@@ -18,9 +18,15 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Set up Hadolint
-			uses: hadolint/hadolint-action@v3.1.0
-		  with:
-		    dockerfile: Dockerfile
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: Dockerfile
+        # Optional parameters based on your needs
+        # config: .hadolint.yaml
+        # no-color: false
+        # verbose: false
+        # failure-threshold: error
+        # format: json
 
     - name: Run Hadolint
       run: |

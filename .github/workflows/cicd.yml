@@ -1,0 +1,165 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "master", "development" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Verify POM file
+      run: |
+        if [ ! -f pom.xml ]; then
+          echo "Error: pom.xml not found!"
+          exit 1
+        fi
+
+    - name: Set up JDK 17
+      id: setup-java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Install Maven
+      run: |
+        MAVEN_VERSION=3.9.2
+        wget https://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz
+        tar xzvf apache-maven-$MAVEN_VERSION-bin.tar.gz
+        sudo mv apache-maven-$MAVEN_VERSION /opt/maven
+        sudo ln -sf /opt/maven/bin/mvn /usr/bin/mvn
+      env:
+        JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml
+
+    - name: Test with Maven
+      if: github.ref == 'refs/heads/development'
+      run: mvn test
+
+    - name: Run Snyk Maven Dependency Scan
+      uses: snyk/actions/maven-3-jdk-17@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        JAVA_HOME: ${{ steps.setup-java.outputs.java-home }}
+      with:
+        args: --severity-threshold=high --fail-on=all
+
+    - name: Update Maven version
+      if: success()
+      id: update_version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+        if [[ $GITHUB_REF == 'refs/heads/master' ]]; then
+          NEW_MINOR=$((MINOR+1))
+          NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+        elif [[ $GITHUB_REF == 'refs/heads/development' ]]; then
+          NEW_PATCH=$((PATCH+1))
+          NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+        else
+          echo "Not a monitored branch. Skipping version increment."
+          exit 0
+        fi
+        echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+        mvn versions:set -DnewVersion=$NEW_VERSION
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: my-app-${{ env.new_version }}
+        path: target/*.jar
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and Push Docker Image
+      if: github.ref == 'refs/heads/master'
+      id: docker_build
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./Dockerfile
+        push: true
+        tags: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+
+    - name: Get Image Digest
+      id: get_digest
+      run: |
+        DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} | sed 's/^[^@]*@//')
+        echo "digest=$DIGEST" >> $GITHUB_ENV
+
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.6.0
+
+    - name: Sign images with a key
+      if: github.ref == 'refs/heads/master'
+      run: |
+        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}"
+        cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
+      env:
+        COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        DIGEST: ${{ env.digest }}
+
+    - name: Commit and push new version
+      if: success()
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add pom.xml
+        git commit -m "Update version to ${{ env.new_version }}"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify image signature
+      if: github.ref == 'refs/heads/master'
+      run: |
+        cosign verify --key env://COSIGN_PUBLIC_KEY ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}
+      env:
+        COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+
+    - name: Deploy Docker Image
+      if: github.ref == 'refs/heads/master'
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -o StrictHostKeyChecking=no -i "~/.ssh/id_rsa" ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker pull ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+
+          # Clean up unused containers and images
+          docker container prune -f
+          docker image prune -f
+
+          # Check if the container is running and stop/remove if necessary
+          if [ $(docker ps -aq -f name=my-app) ]; then
+            echo "Stopping and removing existing container"
+            docker stop my-app || true
+            docker rm my-app || true
+          else
+            echo "No existing container to stop and remove"
+          fi
+
+          # Run the new container
+          docker run -d --name my-app -p 80:8080 ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+        EOF
+      env:
+        EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+        EC2_HOST: ${{ secrets.EC2_HOST }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        NEW_VERSION: ${{ env.new_version }}
+

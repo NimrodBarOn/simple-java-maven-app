@@ -95,30 +95,14 @@ jobs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.6.0
 
-    - name: Sign images with a key
+    - name: Sign images with Cosign
       if: github.ref == 'refs/heads/master'
       run: |
-        images=""
-        for tag in ${TAGS}; do
-          images+="${tag}@${DIGEST} "
-        done
-        cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${images}
+        IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        DIGEST="${{ env.digest }}"
+        cosign sign --yes --key env://COSIGN_PRIVATE_KEY ${IMAGE_TAG}@${DIGEST}
       env:
-        TAGS: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
         COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        DIGEST: ${{ env.digest }}
-
-    - name: Commit and push new version
-      if: success()
-      run: |
-        git config --global user.name 'github-actions[bot]'
-        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-        git add pom.xml
-        git commit -m "Update version to ${{ env.new_version }}"
-        git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   verify-signed-container:
     runs-on: ubuntu-latest
@@ -129,24 +113,13 @@ jobs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.6.0
 
-    - name: Print Environment Variables
+    - name: Verify Image with Cosign
       run: |
-        echo "Image Tag: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
-        echo "Digest: ${{ env.digest }}"
-      env:
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        NEW_VERSION: ${{ env.new_version }}
-        DIGEST: ${{ env.digest }}
-
-    - name: Verify Docker Image with Cosign
-      run: |
-        cosign verify --key ${{ secrets.COSIGN_PUBLIC_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}
+        IMAGE_TAG="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        DIGEST="${{ env.digest }}"
+        cosign verify --key env://COSIGN_PUBLIC_KEY ${IMAGE_TAG}@${DIGEST}
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
-        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-        NEW_VERSION: ${{ env.new_version }}
-        DIGEST: ${{ env.digest }}
-
 
   deploy:
     runs-on: ubuntu-latest

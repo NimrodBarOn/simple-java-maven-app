@@ -115,12 +115,12 @@ jobs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.6.0
 
-    - name: Check images
+    - name: Check image
       run: |
-        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:latest"
-        docker buildx imagetools inspect $images
-        docker pull ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
-        cosign verify --key env://COSIGN_PUBLIC_KEY ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
+        image="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        docker buildx imagetools inspect $image
+        docker pull $image
+        cosign verify --key env://COSIGN_PUBLIC_KEY $image
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}

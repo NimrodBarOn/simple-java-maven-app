@@ -145,13 +145,4 @@ This workflow signs the Docker images using Cosign and verifies them before depl
 - **Sign Docker image**: Signs the Docker image with the generated Cosign key.
 - **Verify image signature**: Confirms the authenticity of the Docker image before deployment.
 
-### 6. Snyk Dependency Scanning (.github/workflows/snyk-dependency-scan.yml)
-
-This workflow scans the Java application for vulnerabilities in its dependencies using Snyk.
-
-**Key steps include:**
-- **Install Snyk CLI**: Sets up Snyk CLI in the CI environment.
-- **Run dependency scan**: Scans the Maven dependencies for known vulnerabilities.
-- **Report vulnerabilities**: Reports any detected vulnerabilities.
-
 ---

@@ -124,7 +124,8 @@ jobs:
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-
+        NEW_VERSION: ${{ env.new_version }}
+        DIGEST: ${{ env.digest }}
 
   deploy:
     runs-on: ubuntu-latest

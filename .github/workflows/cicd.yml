@@ -117,13 +117,14 @@ jobs:
 
     - name: Check image
       run: |
-        image="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        image="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}"
         docker buildx imagetools inspect $image
         docker pull $image
         cosign verify --key env://COSIGN_PUBLIC_KEY $image
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
         DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+
 
   deploy:
     runs-on: ubuntu-latest

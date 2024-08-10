@@ -20,10 +20,10 @@ This project demonstrates a CI/CD pipeline for a Java application using GitHub A
 - **Maven**: Locally installed Maven for testing purposes (can be installed via `apt`, `brew`, or directly from the [Maven website](https://maven.apache.org/)).
 - **JDK 17**: Locally installed JDK 17 for testing purposes (can be installed via `apt`, `brew`, or directly from the [Oracle website](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)).
 - **Snyk Account**: Required for dependency scanning. Sign up at [Snyk.io](https://snyk.io/).
-- **TruffleHog**: Installed locally or via GitHub Actions for secret scanning. [Official Documentation](https://trufflesecurity.com/docs/trufflehog).
+- **TruffleHog**: Installed locally or via GitHub Actions for secret scanning. [Official Documentation](https://github.com/trufflesecurity/trufflehog).
 - **Hadolint**: Installed locally or via GitHub Actions for Dockerfile linting. [Official Documentation](https://github.com/hadolint/hadolint).
 - **CodeQL**: Installed locally or via GitHub Actions for static code analysis. [Official Documentation](https://codeql.github.com/docs/).
-- **Cosign**: Installed locally or via GitHub Actions for image signing. [Official Documentation](https://docs.sigstore.dev/cosign/overview/).
+- **Cosign**: Installed locally or via GitHub Actions for image signing. [Official Documentation](https://github.com/sigstore/cosign).
 - **SSH Access**: SSH access to an EC2 instance for deployment (ensure your SSH key is available and configured).
 - **AWS CLI**: To manage AWS resources (EC2 instances, security groups, etc.).
 

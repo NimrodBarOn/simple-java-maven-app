@@ -129,12 +129,24 @@ jobs:
     - name: Install Cosign
       uses: sigstore/cosign-installer@v3.6.0
 
+    - name: Print Environment Variables
+      run: |
+        echo "Image Tag: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}"
+        echo "Digest: ${{ env.digest }}"
+      env:
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        NEW_VERSION: ${{ env.new_version }}
+        DIGEST: ${{ env.digest }}
+
     - name: Verify Image with Cosign
-      uses: docker://ghcr.io/sigstore/cosign:v2.0.0
-      with:
-        args: verify --key ${{ secrets.COSIGN_PUBLIC_KEY }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}
+      run: |
+        echo "Verifying image with tag: ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}"
+        cosign verify --key env://COSIGN_PUBLIC_KEY ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}@${{ env.digest }}
       env:
         COSIGN_PUBLIC_KEY: ${{ secrets.COSIGN_PUBLIC_KEY }}
+        DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+        NEW_VERSION: ${{ env.new_version }}
+        DIGEST: ${{ env.digest }}
 
   deploy:
     runs-on: ubuntu-latest

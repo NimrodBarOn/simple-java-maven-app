@@ -117,7 +117,7 @@ jobs:
 
     - name: Check images
       run: |
-        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} ${secrets.DOCKER_USERNAME}/simple-java-maven-app:latest"
+        images="${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }} ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:latest"
         docker buildx imagetools inspect $images
         docker pull ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
         cosign verify --key env://COSIGN_PUBLIC_KEY ${{ secrets.DOCKER_USERNAME }}/simple-java-maven-app:${{ env.new_version }}
